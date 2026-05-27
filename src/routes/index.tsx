@@ -1,24 +1,11 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-lure.png";
 import logoGold from "@/assets/lure-logo-gold.png";
 import logoWhite from "@/assets/lure-logo-white.png";
-import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 
-export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Candidatar-se | Lure Digital" },
-      { name: "description", content: "Cadastre-se para a vaga na Lure Digital, a maior aceleradora de resultados do mercado automotivo da América Latina." },
-      { property: "og:title", content: "Candidatar-se | Lure Digital" },
-      { property: "og:description", content: "Cadastre-se para a vaga na Lure Digital." },
-    ],
-  }),
-  component: Index,
-});
-
-function Index() {
+export default function Index() {
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showWhite, setShowWhite] = useState(false);
@@ -38,7 +25,7 @@ function Index() {
     setSubmitting(true);
     setTimeout(() => {
       setSubmitting(false);
-      navigate({ to: "/obrigado" });
+      navigate("/obrigado");
     }, 800);
   };
 

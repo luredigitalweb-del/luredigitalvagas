@@ -1,18 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 import logoWhite from "@/assets/lure-logo-white.png";
 import logoGold from "@/assets/lure-logo-gold-full.png";
 
-export const Route = createFileRoute("/obrigado")({
-  head: () => ({
-    meta: [
-      { title: "Obrigado | Lure Digital" },
-      { name: "description", content: "Candidatura recebida com sucesso." },
-    ],
-  }),
-  component: Obrigado,
-});
-
-function Obrigado() {
+export default function Obrigado() {
   return (
     <div className="min-h-screen bg-[#070a18] text-white antialiased flex items-center justify-center px-4">
       <div className="max-w-lg w-full text-center">
