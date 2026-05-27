@@ -171,17 +171,9 @@ export default function Index() {
               </Field>
             </div>
 
-            <Field label="Instagram">
-              <input type="url" placeholder="https://instagram.com/..." maxLength={250} className={inputCls} />
-            </Field>
-
-            <Field label="LinkedIn">
-              <input type="url" placeholder="https://linkedin.com/in/..." maxLength={250} className={inputCls} />
-            </Field>
-
-            <Field label="Portfólio">
-              <input type="url" placeholder="https://..." maxLength={250} className={inputCls} />
-            </Field>
+            <OptionalUrlField label="Instagram" placeholder="https://instagram.com/..." />
+            <OptionalUrlField label="LinkedIn" placeholder="https://linkedin.com/in/..." />
+            <OptionalUrlField label="Portfólio" placeholder="https://..." />
 
             <Field label="Link do currículo (PDF/Drive)" required>
               <input required type="url" placeholder="https://drive.google.com/..." maxLength={250} className={inputCls} />
@@ -217,6 +209,36 @@ export default function Index() {
 
 const inputCls =
   "w-full px-4 py-3 rounded-xl bg-black/40 border border-white/[0.08] text-white text-sm placeholder:text-white/25 outline-none transition focus:border-amber-400/50 focus:bg-black/60 focus:ring-2 focus:ring-amber-400/15";
+
+function OptionalUrlField({ label, placeholder }: { label: string; placeholder: string }) {
+  const [naoTenho, setNaoTenho] = useState(false);
+  return (
+    <label className="block">
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-xs font-medium text-white/70 uppercase tracking-wider">
+          {label}
+        </span>
+        <label className="inline-flex items-center gap-1.5 text-[11px] text-white/50 hover:text-white/80 cursor-pointer select-none transition">
+          <input
+            type="checkbox"
+            checked={naoTenho}
+            onChange={(e) => setNaoTenho(e.target.checked)}
+            className="w-3.5 h-3.5 rounded border-white/20 bg-black/40 accent-amber-400 cursor-pointer"
+          />
+          Não tenho
+        </label>
+      </div>
+      <input
+        type="url"
+        placeholder={naoTenho ? "—" : placeholder}
+        maxLength={250}
+        disabled={naoTenho}
+        value={naoTenho ? "" : undefined}
+        className={`${inputCls} ${naoTenho ? "opacity-40 cursor-not-allowed" : ""}`}
+      />
+    </label>
+  );
+}
 
 function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
