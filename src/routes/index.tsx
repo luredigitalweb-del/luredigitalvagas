@@ -4,6 +4,9 @@ import heroImage from "@/assets/hero-lure.png";
 import logoGold from "@/assets/lure-logo-gold.png";
 import logoWhite from "@/assets/lure-logo-white.png";
 import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
+
+const WEBHOOK_URL = "https://hook.us1.make.com/fhjedp7hig9wd95t5r8ntie5ken62lul";
 
 export default function Index() {
   const [submitting, setSubmitting] = useState(false);
@@ -20,13 +23,27 @@ export default function Index() {
     };
   }, []);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
+    const form = e.currentTarget;
+    const data = Object.fromEntries(new FormData(form).entries());
+    try {
+      const res = await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...data,
+          enviado_em: new Date().toISOString(),
+        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       navigate("/obrigado");
-    }, 800);
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao enviar candidatura. Tente novamente.");
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -119,21 +136,21 @@ export default function Index() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <Field label="Nome completo" required>
-              <input required type="text" maxLength={120} className={inputCls} />
+              <input name="nome" required type="text" maxLength={120} className={inputCls} />
             </Field>
 
             <div className="grid sm:grid-cols-2 gap-4 sm:gap-5">
               <Field label="E-mail" required>
-                <input required type="email" maxLength={150} className={inputCls} />
+                <input name="email" required type="email" maxLength={150} className={inputCls} />
               </Field>
               <Field label="Telefone" required>
-                <input required type="tel" placeholder="(11) 99999-9999" maxLength={20} className={inputCls} />
+                <input name="telefone" required type="tel" placeholder="(11) 99999-9999" maxLength={20} className={inputCls} />
               </Field>
             </div>
 
             <div className="grid sm:grid-cols-2 gap-4 sm:gap-5">
               <Field label="Área/Função" required>
-                <select required className={inputCls} defaultValue="">
+                <select name="area" required className={inputCls} defaultValue="">
                   <option value="" disabled>Selecione</option>
                   <option>Comercial</option>
                   <option>RH</option>
@@ -145,7 +162,7 @@ export default function Index() {
                 </select>
               </Field>
               <Field label="Como conheceu a vaga" required>
-                <select required className={inputCls} defaultValue="">
+                <select name="origem" required className={inputCls} defaultValue="">
                   <option value="" disabled>Selecione</option>
                   <option>LinkedIn</option>
                   <option>Instagram</option>
@@ -158,7 +175,7 @@ export default function Index() {
 
             <div className="grid sm:grid-cols-2 gap-4 sm:gap-5">
               <Field label="Disponibilidade" required>
-                <select required className={inputCls} defaultValue="">
+                <select name="disponibilidade" required className={inputCls} defaultValue="">
                   <option value="" disabled>Selecione</option>
                   <option>Imediata</option>
                   <option>15 dias</option>
@@ -167,20 +184,20 @@ export default function Index() {
                 </select>
               </Field>
               <Field label="Pretensão salarial (R$)" required>
-                <input required type="number" min={0} defaultValue={0} className={inputCls} />
+                <input name="pretensao_salarial" required type="number" min={0} defaultValue={0} className={inputCls} />
               </Field>
             </div>
 
-            <OptionalUrlField label="Instagram" placeholder="https://instagram.com/..." />
-            <OptionalUrlField label="LinkedIn" placeholder="https://linkedin.com/in/..." />
-            <OptionalUrlField label="Portfólio" placeholder="https://..." />
+            <OptionalUrlField name="instagram" label="Instagram" placeholder="https://instagram.com/..." />
+            <OptionalUrlField name="linkedin" label="LinkedIn" placeholder="https://linkedin.com/in/..." />
+            <OptionalUrlField name="portfolio" label="Portfólio" placeholder="https://..." />
 
             <Field label="Link do currículo (PDF/Drive)" required>
-              <input required type="url" placeholder="https://drive.google.com/..." maxLength={250} className={inputCls} />
+              <input name="curriculo" required type="url" placeholder="https://drive.google.com/..." maxLength={250} className={inputCls} />
             </Field>
 
             <Field label="Carta de apresentação">
-              <textarea rows={5} maxLength={2000} placeholder="Breve apresentação do candidato..." className={`${inputCls} resize-y min-h-[120px]`} />
+              <textarea name="carta" rows={5} maxLength={2000} placeholder="Breve apresentação do candidato..." className={`${inputCls} resize-y min-h-[120px]`} />
             </Field>
 
             <div className="pt-3">
@@ -210,8 +227,9 @@ export default function Index() {
 const inputCls =
   "w-full px-4 py-3 rounded-xl bg-black/40 border border-white/[0.08] text-white text-sm placeholder:text-white/25 outline-none transition focus:border-amber-400/50 focus:bg-black/60 focus:ring-2 focus:ring-amber-400/15";
 
-function OptionalUrlField({ label, placeholder }: { label: string; placeholder: string }) {
+function OptionalUrlField({ name, label, placeholder }: { name: string; label: string; placeholder: string }) {
   const [naoTenho, setNaoTenho] = useState(false);
+  const [value, setValue] = useState("");
   return (
     <label className="block">
       <div className="flex items-center justify-between mb-1.5">
@@ -222,18 +240,23 @@ function OptionalUrlField({ label, placeholder }: { label: string; placeholder: 
           <input
             type="checkbox"
             checked={naoTenho}
-            onChange={(e) => setNaoTenho(e.target.checked)}
+            onChange={(e) => {
+              setNaoTenho(e.target.checked);
+              if (e.target.checked) setValue("");
+            }}
             className="w-3.5 h-3.5 rounded border-white/20 bg-black/40 accent-amber-400 cursor-pointer"
           />
           Não tenho
         </label>
       </div>
       <input
-        type="url"
+        name={name}
+        type={naoTenho ? "text" : "url"}
         placeholder={naoTenho ? "—" : placeholder}
         maxLength={250}
         disabled={naoTenho}
-        value={naoTenho ? "" : undefined}
+        value={naoTenho ? "Não tenho" : value}
+        onChange={(e) => setValue(e.target.value)}
         className={`${inputCls} ${naoTenho ? "opacity-40 cursor-not-allowed" : ""}`}
       />
     </label>
