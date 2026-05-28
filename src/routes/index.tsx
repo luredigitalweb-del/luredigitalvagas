@@ -27,15 +27,12 @@ export default function Index() {
     e.preventDefault();
     setSubmitting(true);
     const form = e.currentTarget;
-    const data = Object.fromEntries(new FormData(form).entries());
+    const formData = new FormData(form);
+    formData.append("enviado_em", new Date().toISOString());
     try {
       const res = await fetch(WEBHOOK_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...data,
-          enviado_em: new Date().toISOString(),
-        }),
+        body: formData,
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       navigate("/obrigado");
@@ -192,8 +189,14 @@ export default function Index() {
             <OptionalUrlField name="linkedin" label="LinkedIn" placeholder="https://linkedin.com/in/..." />
             <OptionalUrlField name="portfolio" label="Portfólio" placeholder="https://..." />
 
-            <Field label="Link do currículo (PDF/Drive)" required>
-              <input name="curriculo" required type="url" placeholder="https://drive.google.com/..." maxLength={250} className={inputCls} />
+            <Field label="Currículo (PDF, DOC, DOCX — até 10MB)" required>
+              <input
+                name="curriculo"
+                required
+                type="file"
+                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                className={`${inputCls} file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-400/15 file:text-amber-300 hover:file:bg-amber-400/25 file:cursor-pointer cursor-pointer`}
+              />
             </Field>
 
             <Field label="Carta de apresentação">
