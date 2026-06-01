@@ -35,6 +35,9 @@ export default function Index() {
         body: formData,
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (typeof window !== "undefined" && (window as any).fbq) {
+        (window as any).fbq("track", "Lead");
+      }
       navigate("/obrigado");
     } catch (err) {
       console.error(err);
