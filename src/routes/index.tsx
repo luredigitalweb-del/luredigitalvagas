@@ -5,21 +5,9 @@ import logoGold from "@/assets/lure-logo-gold.png";
 import logoWhite from "@/assets/lure-logo-white.png";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
+import { supabase, CURRICULOS_BUCKET } from "@/lib/supabase";
 
 const WEBHOOK_URL = "https://hook.us1.make.com/fhjedp7hig9wd95t5r8ntie5ken62lul";
-
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      const base64 = result.includes(",") ? result.split(",")[1] : result;
-      resolve(base64);
-    };
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
-}
 
 export default function Index() {
   const [submitting, setSubmitting] = useState(false);
@@ -60,15 +48,26 @@ export default function Index() {
           setSubmitting(false);
           return;
         }
-        const base64 = await fileToBase64(curriculoFile);
         const ext = curriculoFile.name.split(".").pop()?.toLowerCase() || "pdf";
-        const mime = curriculoFile.type || "application/pdf";
+        const safeName = curriculoFile.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${safeName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from(CURRICULOS_BUCKET)
+          .upload(path, curriculoFile, {
+            contentType: curriculoFile.type || "application/pdf",
+            upsert: false,
+          });
+
+        if (uploadError) throw new Error(`Falha ao enviar currículo: ${uploadError.message}`);
+
+        const { data: pub } = supabase.storage.from(CURRICULOS_BUCKET).getPublicUrl(path);
+
         payload.curriculo_nome = curriculoFile.name;
         payload.curriculo_extensao = ext;
-        payload.curriculo_tipo = mime;
+        payload.curriculo_tipo = curriculoFile.type || "application/pdf";
         payload.curriculo_tamanho = curriculoFile.size;
-        payload.curriculo_base64 = base64;
-        payload.curriculo_data_uri = `data:${mime};base64,${base64}`;
+        payload.curriculo_url = pub.publicUrl;
       }
 
       const res = await fetch(WEBHOOK_URL, {
