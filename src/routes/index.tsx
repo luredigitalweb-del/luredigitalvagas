@@ -63,11 +63,12 @@ export default function Index() {
 
         const { data: pub } = supabase.storage.from(CURRICULOS_BUCKET).getPublicUrl(path);
 
+        payload.curriculo = pub.publicUrl;
+        payload.curriculo_url = pub.publicUrl;
         payload.curriculo_nome = curriculoFile.name;
         payload.curriculo_extensao = ext;
         payload.curriculo_tipo = curriculoFile.type || "application/pdf";
         payload.curriculo_tamanho = curriculoFile.size;
-        payload.curriculo_url = pub.publicUrl;
       }
 
       const res = await fetch(WEBHOOK_URL, {
