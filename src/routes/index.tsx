@@ -8,6 +8,19 @@ import { toast } from "sonner";
 
 const WEBHOOK_URL = "https://hook.us1.make.com/fhjedp7hig9wd95t5r8ntie5ken62lul";
 
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      const base64 = result.includes(",") ? result.split(",")[1] : result;
+      resolve(base64);
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function Index() {
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -28,11 +41,36 @@ export default function Index() {
     setSubmitting(true);
     const form = e.currentTarget;
     const formData = new FormData(form);
-    formData.append("enviado_em", new Date().toISOString());
+
+    const payload: Record<string, unknown> = { enviado_em: new Date().toISOString() };
+    let curriculoFile: File | null = null;
+
+    for (const [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        if (value.size > 0) curriculoFile = value;
+      } else {
+        payload[key] = value;
+      }
+    }
+
     try {
+      if (curriculoFile) {
+        if (curriculoFile.size > 10 * 1024 * 1024) {
+          toast.error("Arquivo do currículo muito grande. Máx: 10MB.");
+          setSubmitting(false);
+          return;
+        }
+        const base64 = await fileToBase64(curriculoFile);
+        payload.curriculo_nome = curriculoFile.name;
+        payload.curriculo_tipo = curriculoFile.type;
+        payload.curriculo_tamanho = curriculoFile.size;
+        payload.curriculo_base64 = base64;
+      }
+
       const res = await fetch(WEBHOOK_URL, {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       if (typeof window !== "undefined" && (window as any).fbq) {
