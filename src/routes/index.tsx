@@ -41,6 +41,17 @@ export default function Index() {
       }
     }
 
+    // Aliases pra bater com o schema da Edge Function downstream (receive-meta-lead)
+    payload.full_name = payload.nome;
+    payload.name = payload.nome;
+    payload.phone = payload.telefone;
+    payload.phone_number = payload.telefone;
+    payload.area_funcao = payload.area;
+    payload.disponibilidade_inicio = payload.disponibilidade;
+    payload.pretensao = payload.pretensao_salarial;
+    payload.carta_apresentacao = payload.carta;
+    payload.como_conheceu = payload.origem;
+
     try {
       if (curriculoFile) {
         if (curriculoFile.size > 10 * 1024 * 1024) {
