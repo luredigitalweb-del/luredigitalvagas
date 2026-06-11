@@ -61,10 +61,14 @@ export default function Index() {
           return;
         }
         const base64 = await fileToBase64(curriculoFile);
+        const ext = curriculoFile.name.split(".").pop()?.toLowerCase() || "pdf";
+        const mime = curriculoFile.type || "application/pdf";
         payload.curriculo_nome = curriculoFile.name;
-        payload.curriculo_tipo = curriculoFile.type;
+        payload.curriculo_extensao = ext;
+        payload.curriculo_tipo = mime;
         payload.curriculo_tamanho = curriculoFile.size;
         payload.curriculo_base64 = base64;
+        payload.curriculo_data_uri = `data:${mime};base64,${base64}`;
       }
 
       const res = await fetch(WEBHOOK_URL, {
